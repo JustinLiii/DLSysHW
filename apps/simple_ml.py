@@ -33,7 +33,21 @@ def parse_mnist(image_filesname, label_filename):
                 for MNIST will contain the values 0-9.
     """
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    import gzip
+    
+    with gzip.open(image_filesname, 'rb') as f:
+        _, size, nrows, ncols = struct.unpack('>iiii',f.read(4*4)) # type: ignore
+        feature_size = nrows * ncols
+        X = np.frombuffer(f.read(), dtype=np.uint8) # type: ignore
+        X = X.astype(np.float32)
+        X = X / 255.0
+        X = X.reshape(size, feature_size)
+                
+    with gzip.open(label_filename, 'rb') as f:
+        _, size = struct.unpack('>ii',f.read(4*2)) # type: ignore
+        y = np.frombuffer(f.read(), dtype=np.uint8) # type: ignore
+            
+    return (X,y)
     ### END YOUR SOLUTION
 
 
@@ -54,11 +68,12 @@ def softmax_loss(Z, y_one_hot):
         Average softmax loss over the sample. (ndl.Tensor[np.float32])
     """
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    l = ndl.log(ndl.summation(ndl.exp(Z), axes=(1,))) - ndl.summation(Z * y_one_hot, axes=(1,))
+    return ndl.summation(l) / l.shape[0]
     ### END YOUR SOLUTION
 
 
-def nn_epoch(X, y, W1, W2, lr=0.1, batch=100):
+def nn_epoch(X: np.ndarray, y: np.ndarray, W1: ndl.Tensor, W2: ndl.Tensor, lr=0.1, batch=100):
     """Run a single epoch of SGD for a two-layer neural network defined by the
     weights W1 and W2 (with no bias terms):
         logits = ReLU(X * W1) * W1
@@ -83,7 +98,31 @@ def nn_epoch(X, y, W1, W2, lr=0.1, batch=100):
     """
 
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    b = 0
+    while b < X.shape[0]:
+        if b + batch <= X.shape[0]:
+            xx = X[b:b+batch] # (batch_size, input_dim)
+            yy = y[b:b+batch] # (batch_size,)
+        else:
+            xx = X[b:] # (batch_size, input_dim)
+            yy = y[b:] # (batch_size,)
+            
+        # W1 (input_dim, hidden_dim)
+        # W2 (hidden_dim, output_dim)
+
+        z = ndl.relu(ndl.Tensor(xx) @ W1) @ W2 # (batch_size, output_dim)
+        y_one_hot = np.zeros(z.shape) # 因为z是ndl.Tensor，不能用ones_like
+        print(y_one_hot.shape)
+        y_one_hot[np.arange(y_one_hot.shape[0]), yy] = 1
+        y_one_hot = ndl.Tensor(y_one_hot)
+        loss = softmax_loss(z, y_one_hot)
+        loss.backward()
+        W1.data -= lr * W1.grad.data
+        W2.data -= lr * W2.grad.data
+        
+        b += batch
+        
+    return W1, W2
     ### END YOUR SOLUTION
 
 

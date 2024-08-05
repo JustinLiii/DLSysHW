@@ -1,7 +1,7 @@
 """Core data structures."""
 import needle
 from .backend_numpy import Device, cpu, all_devices
-from typing import List, Optional, NamedTuple, Tuple, Union
+from typing import List, Optional, NamedTuple, Tuple, Union, Dict
 from collections import namedtuple
 import numpy
 
@@ -380,7 +380,29 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
 
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    for node in reverse_topo_order:
+        if not isinstance(node, Tensor):
+            continue
+        if node.requires_grad == False:
+            continue
+        
+        # sum partials to get grad
+        node.grad = sum_node_list(node_to_output_grads_list[node])
+        
+        # compute downstream
+        if node.op is None:
+            continue
+        down_grads = node.op.gradient_as_tuple(node.grad, node)
+        
+        # backprop
+        for down_node, grad in zip(node.inputs, down_grads):
+            if not isinstance(down_node, Tensor):
+                continue
+            if down_node in node_to_output_grads_list:
+                node_to_output_grads_list[down_node].append(grad) # type:ignore
+            else:
+                node_to_output_grads_list[down_node] = [grad] # type:ignore
+        
     ### END YOUR SOLUTION
 
 
@@ -393,14 +415,24 @@ def find_topo_sort(node_list: List[Value]) -> List[Value]:
     sort.
     """
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    topo_order = []
+    visited = set()
+    for node in node_list:
+        if node not in visited:
+            topo_sort_dfs(node, visited, topo_order)
+    
+    return topo_order
     ### END YOUR SOLUTION
 
 
-def topo_sort_dfs(node, visited, topo_order):
+def topo_sort_dfs(node: Value, visited: set, topo_order:list):
     """Post-order DFS"""
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    for child in node.inputs:
+        if child not in visited:
+            topo_sort_dfs(child, visited, topo_order)
+    visited.add(node)
+    topo_order.append(node)
     ### END YOUR SOLUTION
 
 
