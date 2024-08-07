@@ -10,7 +10,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": ["-v","-k", "test_nn_linear"]
+            "args": ["-v","-k", "test_op_logsumexp"]
         }
     ]
 }
