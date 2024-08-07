@@ -390,7 +390,7 @@ def compute_gradient_of_variables(output_tensor, out_grad):
         node.grad = sum_node_list(node_to_output_grads_list[node])
         
         # compute downstream
-        if node.op is None:
+        if node.is_leaf():
             continue
         down_grads = node.op.gradient_as_tuple(node.grad, node)
         

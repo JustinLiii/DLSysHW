@@ -391,7 +391,7 @@ def compute_gradient_of_variables(output_tensor, out_grad):
         assert node.grad.shape == node.shape, f"{node} grad shape {node.grad.shape} should consistant with shape {node.shape}" 
         
         # compute downstream
-        if node.op is None:
+        if node.is_leaf():
             continue
         down_grads = node.op.gradient_as_tuple(node.grad, node)
         
