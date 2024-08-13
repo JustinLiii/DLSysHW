@@ -40,12 +40,12 @@ class LogSumExp(TensorOp):
         # grad = exp(Z - maxZ) / exp(node - maxZ) shape same as Z
         # out_grad shape may be different, should be same as keep dim max Z to align axis
         Z = node.inputs[0]
-        print(f'Z with shape {Z.shape}')
+        # print(f'Z with shape {Z.shape}')
         maxZ = Tensor(array_api.max(Z.cached_data, axis=self.axes, keepdims=True), requires_grad=False)
-        print(f'max Z with shape {maxZ.shape}')
+        # print(f'max Z with shape {maxZ.shape}')
         grad = exp(Z - broadcast_to(maxZ, Z.shape)) / broadcast_to(exp(reshape(node, maxZ.shape) - maxZ), Z.shape)
-        print(f'node with shape {node.shape}')
-        print(f'grad with shape {grad.shape}')
+        # print(f'node with shape {node.shape}')
+        # print(f'grad with shape {grad.shape}')
         return broadcast_to(reshape(out_grad, maxZ.shape), grad.shape) * grad
         ### END YOUR SOLUTION
 
