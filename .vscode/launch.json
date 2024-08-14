@@ -10,7 +10,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",
-            "args": ["-v","-k", "test_op_logsumexp"]
+            "args": ["-v","-k", "test_optim_adam"]
         }
     ]
 }

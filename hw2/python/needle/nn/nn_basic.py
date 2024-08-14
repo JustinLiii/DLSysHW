@@ -171,25 +171,24 @@ class BatchNorm1d(Module):
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        m = self.momentum
-        # running
-        ex = ops.summation(x, axes=(0, )) / x.shape[0] # (dim, )
-        print(ex)
-        self.running_mean = (1 - m) * self.running_mean + m * ex
-        
-        ex_b = ops.broadcast_to(ex, x.shape) # (batch, dim)
-        diff = x - ex_b
-        vx = ops.summation(ops.power_scalar(diff, 2), axes=(0,)) / x.shape[0] # (dim, )
-        self.running_var = (1 - m) * self.running_var + m * vx
-        
         if self.training:
-            under_b = ops.broadcast_to(ops.power_scalar(vx + self.eps, 0.5), x.shape) # (batch, dim)
+            m = self.momentum
+            ex = ops.summation(x, axes=(0, )) / x.shape[0] # (dim, )
+            ex_b = ops.broadcast_to(ex, x.shape) # (batch, dim)
+            diff = x - ex_b
+            vx = ops.summation(diff ** 2, axes=(0,)) / x.shape[0] # (dim, )
+            
+            # running
+            self.running_mean = ((1 - m) * self.running_mean + m * ex).detach()
+            self.running_var = ((1 - m) * self.running_var + m * vx).detach()
+        
+            under_b = ops.broadcast_to((vx + self.eps) ** 0.5, x.shape) # (batch, dim)
             w_b = ops.broadcast_to(self.weight, x.shape)
             b_b = ops.broadcast_to(self.bias, x.shape)
             return w_b * (diff / under_b) + b_b
         else:
             # running
-            under_b = ops.broadcast_to(ops.power_scalar(self.running_var + self.eps, 0.5), x.shape) # (batch, dim)
+            under_b = ops.broadcast_to((self.running_var + self.eps) ** 0.5, x.shape) # (batch, dim)
             w_b = ops.broadcast_to(self.weight, x.shape)
             b_b = ops.broadcast_to(self.bias, x.shape)
             return w_b * (x - ops.broadcast_to(self.running_mean, x.shape) / under_b) + b_b
