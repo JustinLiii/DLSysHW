@@ -88,14 +88,16 @@ class Linear(Module):
         self.out_features = out_features
 
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.kaiming_uniform(in_features, out_features)) # (in, out)
+        self.weight = Parameter(init.kaiming_uniform(in_features, out_features), 
+                                device=device, dtype=dtype) # (in, out)
         if bias:
             # 在处理一些bug时注意到：目前的写法很容易忽视没有broadcast的问题
             # numpy作为array_api在forward时会隐式broadcast
             # 导致缺少broadcast的问题只会在backward时暴露出来
              
             # 需要先reshape再创建Parameter，因为对Parameter reshape会返回Tensor而不是Parameter
-            self.bias = Parameter(init.kaiming_uniform(out_features, 1).reshape((1,out_features)))
+            self.bias = Parameter(init.kaiming_uniform(out_features, 1).reshape((1,out_features)),
+                                  device=device, dtype=dtype)
         ### END YOUR SOLUTION
 
     def forward(self, X: Tensor) -> Tensor:
@@ -162,11 +164,11 @@ class BatchNorm1d(Module):
         self.eps = eps
         self.momentum = momentum
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.ones(dim))
-        self.bias = Parameter(init.zeros(dim))
+        self.weight = Parameter(init.ones(dim), device=device, dtype=dtype)
+        self.bias = Parameter(init.zeros(dim), device=device, dtype=dtype)
         
-        self.running_mean = init.zeros(dim, requires_grad=False)
-        self.running_var = init.ones(dim, requires_grad=False)
+        self.running_mean = init.zeros(dim, requires_grad=False, device=device, dtype=dtype)
+        self.running_var = init.ones(dim, requires_grad=False, device=device, dtype=dtype)
         ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
@@ -202,8 +204,8 @@ class LayerNorm1d(Module):
         self.dim = dim
         self.eps = eps
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.ones(dim))
-        self.bias = Parameter(init.zeros(dim))
+        self.weight = Parameter(init.ones(dim), device=device, dtype=dtype)
+        self.bias = Parameter(init.zeros(dim), device=device, dtype=dtype)
         ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
