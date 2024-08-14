@@ -103,7 +103,7 @@ class Linear(Module):
         # X (b, in)
         ret = X @ self.weight # (b, out)
         if self.bias is not None:
-            bias = ops.broadcast_to(self.bias, (ret.shape))
+            bias = ops.broadcast_to(self.bias, ret.shape)
             ret += bias
         return ret
         ### END YOUR SOLUTION
@@ -172,26 +172,27 @@ class BatchNorm1d(Module):
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
         if self.training:
-            m = self.momentum
-            ex = ops.summation(x, axes=(0, )) / x.shape[0] # (dim, )
-            ex_b = ops.broadcast_to(ex, x.shape) # (batch, dim)
-            diff = x - ex_b
-            vx = ops.summation(diff ** 2, axes=(0,)) / x.shape[0] # (dim, )
+            ex = x.sum(axes=(0, )) / x.shape[0] # (dim, )
+            diff = x - ex.broadcast_to(x.shape) # (batch, dim)
+            vx = (diff ** 2).sum(axes=(0,)) / x.shape[0] # (dim, )
             
             # running
+            m = self.momentum
             self.running_mean = ((1 - m) * self.running_mean + m * ex).detach()
             self.running_var = ((1 - m) * self.running_var + m * vx).detach()
         
-            under_b = ops.broadcast_to((vx + self.eps) ** 0.5, x.shape) # (batch, dim)
-            w_b = ops.broadcast_to(self.weight, x.shape)
-            b_b = ops.broadcast_to(self.bias, x.shape)
-            return w_b * (diff / under_b) + b_b
+            std = ((vx + self.eps) ** 0.5).broadcast_to(x.shape) # (batch, dim)
+            w_b = self.weight.broadcast_to(x.shape)
+            b_b = self.bias.broadcast_to(x.shape)
+            x_norm = diff / std
+            return x_norm * w_b + b_b
         else:
             # running
-            under_b = ops.broadcast_to((self.running_var + self.eps) ** 0.5, x.shape) # (batch, dim)
+            std = ops.broadcast_to((self.running_var + self.eps) ** 0.5, x.shape) # (batch, dim)
             w_b = ops.broadcast_to(self.weight, x.shape)
             b_b = ops.broadcast_to(self.bias, x.shape)
-            return w_b * (x - ops.broadcast_to(self.running_mean, x.shape) / under_b) + b_b
+            x_norm = (x - ops.broadcast_to(self.running_mean, x.shape)) / std
+            return w_b * x_norm + b_b
         ### END YOUR SOLUTION
 
 
