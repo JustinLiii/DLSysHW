@@ -106,11 +106,13 @@ def train_mnist(
     opt = optimizer(model.parameters(), lr, weight_decay = weight_decay)
     
     for _ in range(epochs):
-        epoch(train_dataloader, model, opt)
+        train_err, train_loss = epoch(train_dataloader, model, opt)
         
-    train_err, train_loss = epoch(train_dataloader, model)
+    # statictis calculated during training is different from plain evaluation.
+    # train_err, train_loss = epoch(train_dataloader, model)
+    
     test_err, test_loss = epoch(test_dataloader, model)
-    return (1-train_err), train_loss, (1-test_err), test_loss
+    return train_err, train_loss, test_err, test_loss # somehow here should return err_rate instead of accuracy
     ### END YOUR SOLUTION
 
 

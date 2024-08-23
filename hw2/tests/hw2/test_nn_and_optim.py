@@ -423,7 +423,7 @@ def eval_epoch_1(hidden_dim, batch_size):
     model.train()
     return np.array(epoch(test_dataloader, model))
 
-
+# 250, 2
 def train_mnist_1(batch_size, epochs, optimizer, lr, weight_decay, hidden_dim):
     np.random.seed(1)
     out = train_mnist(
