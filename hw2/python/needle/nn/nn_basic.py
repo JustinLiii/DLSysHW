@@ -151,7 +151,6 @@ class SoftmaxLoss(Module):
         # logits (batch, out_dim)
         y_one_hot = init.one_hot(logits.shape[1], y) # (batch, out_dim)
         losses = ops.logsumexp(logits, (-1,)) - ops.summation(logits * y_one_hot, axes=(-1,)) #(batch, )
-        
         # mean loss
         return ops.summation(losses) / losses.shape[0]
         ### END YOUR SOLUTION
@@ -230,7 +229,8 @@ class Dropout(Module):
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
         if self.training:
-            mask = init.randb(*(x.shape), p=self.p, dtype="int")
+            # p is probability of masked neuron, not not-masked
+            mask = init.randb(*(x.shape), p=(1-self.p), dtype=x.dtype)
             return x * mask / (1 - self.p)
         else:
             return x

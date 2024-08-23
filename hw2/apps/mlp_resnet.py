@@ -37,7 +37,7 @@ def MLPResNet(
     drop_prob=0.1,
 ):
     ### BEGIN YOUR SOLUTION
-    layers = [nn.Linear(dim, hidden_dim), nn.ReLU()]
+    layers = [nn.Flatten(), nn.Linear(dim, hidden_dim), nn.ReLU()]
     for _ in range(num_blocks):
         layers.append(ResidualBlock(dim=hidden_dim, hidden_dim=hidden_dim//2, 
                                     norm=norm, drop_prob=drop_prob))
@@ -62,19 +62,19 @@ def epoch(dataloader, model, opt=None):
         l = loss_func(logits, y)
         
         if opt is not None:
-            l.backward()
             opt.reset_grad()
+            l.backward()
             opt.step()
         
         batch_size = y.shape[0]
         total += batch_size
-        loss += l.detach() * batch_size
+        loss += float(l.numpy() * batch_size)
         
-        y_pred = np.argmax(logits, axis=1)
-        err_num += (y_pred != y).sum()
+        y_pred = np.argmax(logits.numpy(), axis=1)
+        err_num += (y_pred != y.numpy()).sum()
         
-    avg_loss = loss / total
-    avg_err = err_num / total
+    avg_loss = float(loss / total)
+    avg_err = float(err_num / total)
     return avg_err, avg_loss
     ### END YOUR SOLUTION
 
