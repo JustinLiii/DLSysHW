@@ -247,7 +247,20 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if not self.is_compact():
+            raise ValueError("Cannot reshape non-compact NDArray")
+        old_size = reduce(lambda x, y: x*y, self._shape)
+        new_size = reduce(lambda x, y: x*y, new_shape)
+        
+        if old_size != new_size:
+            raise ValueError(f"Shape {self._shape} cannot be reshaped into {new_shape}")
+        
+        return NDArray.make(
+            new_shape, 
+            NDArray.compact_strides(new_shape),
+            self._device,
+            self._handle,
+            self._offset)
         ### END YOUR SOLUTION
 
     def permute(self, new_axes):
@@ -272,7 +285,18 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        new_shape = []
+        new_stride = []
+        for axe in new_axes:
+            new_shape.append(self._shape[axe])
+            new_stride.append(self._strides[axe])
+        return NDArray.make(
+            new_shape,
+            tuple(new_stride),
+            self._device,
+            self._handle,
+            self._offset
+        )
         ### END YOUR SOLUTION
 
     def broadcast_to(self, new_shape):
@@ -296,7 +320,22 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        new_stride = []
+        for old, new, stride in zip(self._shape, new_shape, self._strides):
+            if old == new:
+                new_stride.append(stride)
+            elif old == 1:
+                new_stride.append(0)
+            else:
+                raise AssertionError(f"Shape {self._shape} cannot broadcast to {new_shape}")
+        
+        return NDArray.make(
+            new_shape,
+            tuple(new_stride),
+            self._device,
+            self._handle,
+            self._offset
+        )
         ### END YOUR SOLUTION
 
     ### Get and set elements
@@ -363,7 +402,21 @@ class NDArray:
         assert len(idxs) == self.ndim, "Need indexes equal to number of dimensions"
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        new_offset = 0
+        new_shape = []
+        new_stride = []
+        for stride, s in zip(self._strides, idxs):
+            new_offset += stride*s.start
+            new_shape.append((s.stop - s.start - 1) // s.step + 1)
+            new_stride.append(stride * s.step)
+        
+        return NDArray.make(
+            new_shape,
+            tuple(new_stride),
+            self._device,
+            self._handle,
+            new_offset
+        )
         ### END YOUR SOLUTION
 
     def __setitem__(self, idxs, other):
