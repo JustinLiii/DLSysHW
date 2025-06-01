@@ -66,7 +66,7 @@ if(CUDA_FOUND)
     CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Auto)
   else()
     # set to 3.7 the flag of K80
-    CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS 3.7)
+    CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS 6.0)
   endif()
 
   # set arch flags properly
