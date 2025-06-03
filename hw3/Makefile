@@ -5,7 +5,7 @@ all: lib
 
 lib:
 	@mkdir -p build
-	@cd build; cmake ..
+	@cd build; cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 	@cd build; $(MAKE)
 
 format:
